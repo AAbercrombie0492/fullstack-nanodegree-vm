@@ -71,7 +71,7 @@ def registerPlayer(name):
 def playerStandings():
     db = connect()
     c = db.cursor()
-    query = "select p_id, name, score, games_played from players order by score;" 
+    query = "select p_id, name, score, games_played from players order by score desc;" 
     c.execute(query)
     rows = c.fetchall()
     db.close()
@@ -96,14 +96,28 @@ def reportMatch(winner, loser):
     bleach.clean(loser)
     db = connect()
     c = db.cursor()
-    query = "insert into Matches(Round, P1, P2, Winner) Values(1,%d, %d, %d);" % (winner, loser, winner) 
+
+    roundstatus = "select sum(games_played) as num, count(P_ID) as num2 from players;"
+    c.execute(roundstatus)
+    rows = c.fetchall()
+    gamestat = float(str(rows[0][0]))
+    playerstat = int(str(rows[0][1]))
+    roundstat = gamestat/playerstat
+
+    for i in range(playerstat):
+        if roundstat < i:
+            round = i
+            break
+        else:
+            pass
+
+    query = "insert into Matches(Round, P1, P2, Winner) Values(%d,%d, %d, %d);" % (round, winner, loser, winner) 
     c.execute(query)
     db.commit()
 
     query2 = "update Players as p set Games_Played = m.match_count, Score = w.Win_Count from public.Player_Match_Count as m, public.Player_Win_Count as w where p.P_ID = m.P_ID and p.P_ID = w.P_ID;"
     c.execute(query2)
     db.commit()
-
     db.close()
     """Records the outcome of a single match between two players.
 
