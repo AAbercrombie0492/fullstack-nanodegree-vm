@@ -129,6 +129,11 @@ def reportMatch(winner, loser):
 def swissPairings():
     db = connect()
     c = db.cursor()
+    query = "select p1, p2 from matches;"
+    c.execute(query)
+    repeats = c.fetchall()
+
+
     query = "select P_ID, Name, Score from players;"
     c.execute(query)
     rows = c.fetchall()
@@ -137,9 +142,30 @@ def swissPairings():
     from itertools import groupby
     groups = [list(g) for k,g in groupby(wincounts, lambda x: x[2])]
 
-    pairs = [(i[j][0], i[j][1], i[j+1][0], i[j+1][1]) for i in groups for j in range(0,len(i),2)]
+    pairs = []
+    loners = []
+
+    for group in groups:
+        if len(group) % 2 != 0:
+            solo = group.pop()
+            loners.append(solo)
+
+        else:
+            pass
+
+
+    pairs = [(group[j][0], group[j][1], group[j+1][0], group[j+1][1]) for group in groups for j in range(0,len(group[0:-1]),2)]
+
+            
+       
+
+
+    """pairs = [(group[j][0], group[j][1], group[j+1][0], group[j+1][1]) for group in groups for j in range(0,len(group[0:-1]),2)]"""
 
     return pairs
+    db.close()
+
+
 
 
 
